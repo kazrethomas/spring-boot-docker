@@ -48,7 +48,6 @@ pipeline {
       steps {
         container('mysql') {
           sh 'mysql --version' // print MySQL version
-          sh 'mysql -u <username> -p<password> -h <host> -e "SHOW DATABASES <database_name>;"' // execute a SQL query
         }
       }
     }
