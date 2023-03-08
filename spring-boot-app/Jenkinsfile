@@ -41,7 +41,7 @@ pipeline {
           image: docker:latest
           command:
           - cat
-    tty: true
+          tty: true
       """
     }
   }
