@@ -1,5 +1,4 @@
 pipeline {
-
   environment {
     PROJECT = "sandbox-io-289003"
     APP_NAME = "newest"
@@ -56,7 +55,6 @@ pipeline {
       steps {
         container('python') {
           sh 'pip list'
-          sh "echo ${ENV_VAR}"
         }
       }
     }
@@ -69,5 +67,15 @@ pipeline {
       }
     }
 
+    stage('Build and push image') {
+      steps {
+        container('docker') {
+          sh """
+            docker build -t ${IMAGE_TAG} .
+            docker push ${IMAGE_TAG}
+          """
+        }
+      }
+    }
   }
 }
