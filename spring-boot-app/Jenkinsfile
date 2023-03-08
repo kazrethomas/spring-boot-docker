@@ -55,7 +55,7 @@ pipeline {
     stage('Run Python') {
       steps {
         container('python') {
-          sh 'python --version' // print Python version
+          sh 'pip list'
         }
       }
     }
