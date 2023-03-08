@@ -56,8 +56,6 @@ pipeline {
       steps {
         container('python') {
           sh 'python --version' // print Python version
-          sh 'pip install -r requirements.txt' // install dependencies
-          sh 'python main.py' // run the main script
         }
       }
     }
@@ -66,8 +64,6 @@ pipeline {
       steps {
         container('nodejs') {
           sh 'node --version' // print Node.js version
-          sh 'npm install' // install dependencies
-          sh 'npm run build' // build the project
         }
       }
     }
