@@ -82,6 +82,7 @@ pipeline {
           docker tag $IMAGE_TAG gcr.io/$PROJECT/$APP_NAME:$BUILD_NUMBER
           docker push gcr.io/$PROJECT/$APP_NAME:$BUILD_NUMBER
         '''
+        }
       }
     }
   }
