@@ -63,7 +63,7 @@ pipeline {
     stage('Run Node.js') {
       steps {
         container('nodejs') {
-          sh 'node --version' // print Node.js version
+          sh 'pwd'
         }
       }
     }
