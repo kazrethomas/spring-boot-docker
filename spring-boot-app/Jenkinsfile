@@ -10,60 +10,68 @@ pipeline {
     JENKINS_CRED = "${PROJECT}"
   }
 
-agent {
+  agent {
     kubernetes {
-        label 'my-agent'
-        defaultContainer 'jnlp'
-        yaml “”"
-            apiVersion: v1
-            kind: Pod
-            metadata:
-              labels:
-                app: my-agent
-            spec:
-              serviceAccountName: my-jenkins
-              containers:
-              - name: nodejs
-                image: node:latest
-                command:
-                - cat
-                tty: true
-              - name: python
-                image: python:latest
-                command:
-                - cat
-                tty: true
-              - name: mysql
-                image: mysql:latest
-                command:
-                - cat
-                tty: true
-"""
-}
-  }
-stage('Run MySQL') {
-  steps {
-    container('mysql') {
-      sh 'mysql --version' // print MySQL version
-      sh 'mysql -u <username> -p<password> -h <host> -e “SHOW DATABASES;“’ // execute a SQL query
+      label 'my-agent'
+      defaultContainer 'jnlp'
+      yaml """
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        labels:
+          app: my-agent
+      spec:
+        serviceAccountName: my-jenkins
+        containers:
+        - name: nodejs
+          image: node:latest
+          command:
+          - cat
+          tty: true
+        - name: python
+          image: python:latest
+          command:
+          - cat
+          tty: true
+        - name: mysql
+          image: mysql:latest
+          command:
+          - cat
+          tty: true
+      """
     }
   }
-}
-stage('Run Python') {
-  steps {
-    container('python') {
-      sh 'python --version' // print Python version
-      sh 'pip install -r requirements.txt' // install dependencies
-      sh 'python main.py' // run the main script
+
+  stages {
+
+    stage('Run MySQL') {
+      steps {
+        container('mysql') {
+          sh 'mysql --version' // print MySQL version
+          sh 'mysql -u <username> -p<password> -h <host> -e "SHOW DATABASES <database_name>;"' // execute a SQL query
+        }
+      }
     }
-  }
-}
-stage('Run Node.js') {
-  steps {
-    container('nodejs') {
-      sh 'node --version' // print Node.js version
-      sh 'npm install' // install dependencies
-      sh 'npm run build' // build the project
+
+    stage('Run Python') {
+      steps {
+        container('python') {
+          sh 'python --version' // print Python version
+          sh 'pip install -r requirements.txt' // install dependencies
+          sh 'python main.py' // run the main script
+        }
+      }
     }
+
+    stage('Run Node.js') {
+      steps {
+        container('nodejs') {
+          sh 'node --version' // print Node.js version
+          sh 'npm install' // install dependencies
+          sh 'npm run build' // build the project
+        }
+      }
+    }
+
   }
 }
