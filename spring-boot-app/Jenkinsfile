@@ -21,7 +21,7 @@ pipeline {
         labels:
           app: my-agent
       spec:
-        serviceAccountName: my-jenkins
+        serviceAccountName: cd-jenkins
         containers:
         - name: nodejs
           image: node:latest
