@@ -47,7 +47,6 @@ pipeline {
   }
 
   stages {
-
     stage('Run MySQL') {
       steps {
         container('mysql') {
