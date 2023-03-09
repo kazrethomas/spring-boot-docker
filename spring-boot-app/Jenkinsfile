@@ -75,7 +75,7 @@ pipeline {
     stage('Build and push image') {
       steps {
         container('docker') {
-          withCredentials([string(credentialsId: '65212baa17687b0eb91e6ab35c6b1b0220039501', variable: 'DOCKER_LOGIN')]) {
+          withCredentials([string(credentialsId: 'sandbox-io-289003', variable: 'DOCKER_LOGIN')]) {
             sh '''
               echo ${DOCKER_LOGIN} | docker login -u _json_key --password-stdin https://gcr.io
               docker build . -t $IMAGE_TAG
