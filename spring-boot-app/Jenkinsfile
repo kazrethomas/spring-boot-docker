@@ -72,14 +72,16 @@ pipeline {
       }
     }
 
-stage('List bucket contents') {
-  steps {
-    container('python') {
-      withCredentials([gcpServiceAccount(credentialsId: 'jenkins-sa', jsonKeyVariable: 'GCP_SA_KEY')]) {
-        sh """
-          export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp_sa_key.json
-          gsutil ls gs://${PROJECT}-bucket
-        """
+    stage('List bucket contents') {
+      steps {
+        container('python') {
+          withCredentials([gcpServiceAccount(credentialsId: 'jenkins-sa', jsonKeyVariable: 'GCP_SA_KEY')]) {
+            sh """
+              export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp_sa_key.json
+              gsutil ls gs://${PROJECT}-bucket
+            """
+          }
+        }
       }
     }
   }
