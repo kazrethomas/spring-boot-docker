@@ -14,62 +14,45 @@ pipeline {
       label 'my-agent'
       defaultContainer 'jnlp'
       yaml """
-      apiVersion: v1
-      kind: Pod
-      metadata:
-        labels:
-          app: my-agent
-      spec:
-        serviceAccountName: cd-jenkins
-        containers:
-        - name: nodejs
-          image: node:latest
-          command:
-          - cat
-          tty: true
-        - name: python
-          image: python:latest
-          command:
-          - cat
-          tty: true
-        - name: mysql
-          image: mysql:latest
-          command:
-          - cat
-          tty: true
-        - name: kaniko
-          image: gcr.io/kaniko-project/executor:v1.6.0-debug
-          imagePullPolicy: Always
-          command:
-          - sleep
-          args:
-          - 99d
-      """
-    }
+ apiVersion: v1
+kind: Pod
+metadata:
+labels:
+  component: ci
+spec:
+  # Use service account that can deploy to all namespaces
+  serviceAccountName: cd-jenkins
+  containers:
+  - name:  maven
+    image:  maven
+    imagePullPolicy: IfNotPresent
+    command:
+    - cat
+    tty: true
+  - name: kubectl
+    image: gcr.io/cloud-builders/kubectl
+    imagePullPolicy: IfNotPresent
+    command:
+    - cat
+    tty: true
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:v1.6.0-debug
+    imagePullPolicy: Always
+    command:
+    - sleep
+    args:
+    - 99d
+"""
+}
   }
-
+  
   stages {
-
-    stage('Run MySQL') {
-      steps {
-        container('mysql') {
-          sh 'mysql --version' // print MySQL version
-        }
-      }
-    }
-
-    stage('Run Python') {
-      steps {
-        container('python') {
-          sh 'pip list'
-        }
-      }
-    }
-
-    stage('Run Node.js') {
-      steps {
-        container('nodejs') {
-          sh 'pwd'
+    stage('Compilation') {
+       steps {
+        container('maven') {
+         dir("spring-boot-app") {
+          sh "mvn clean install -DskipTests"
+          }
         }
       }
     }
@@ -81,18 +64,23 @@ pipeline {
             // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
             // The equivilant to docker build, tag and push
            sh "/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=${IMAGE_TAG}"
-          }
+         }
         }
       }
     }
+
     stage('Deploy to kubernetes') {
       steps {
         container('kubectl') {
           dir("spring-boot-app") {
+            // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
+            // The equivilant to docker build, tag and push
+           sh "ls"
            sh "kubectl apply -f deployment.yaml"
-          }
+           sh "kubectl apply -f service.yaml"
+         }
         }
       }
     }
-  } 
+  }
 }
