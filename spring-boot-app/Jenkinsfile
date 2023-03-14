@@ -1,7 +1,7 @@
 pipeline {
   environment {
     PROJECT = "sandbox-io-289003"
-    APP_NAME = "newest"
+    APP_NAME = "kazre-app"
     FE_SVC_NAME = "${APP_NAME}-frontend"
     CLUSTER = "jenkins-cd"
     CLUSTER_ZONE = "us-east1-d"
@@ -14,7 +14,7 @@ pipeline {
       label 'my-agent'
       defaultContainer 'jnlp'
       yaml """
- apiVersion: v1
+apiVersion: v1
 kind: Pod
 metadata:
 labels:
@@ -45,7 +45,7 @@ spec:
 """
 }
   }
-  
+
   stages {
     stage('Compilation') {
        steps {
