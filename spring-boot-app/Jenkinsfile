@@ -77,7 +77,7 @@ pipeline {
         container('python') {
           withCredentials([gcpServiceAccount(credentialsId: 'jenkins-sa', jsonKeyVariable: 'GCP_SA_KEY')]) {
             sh """
-              export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp_sa_key.json
+              google/cloud-sdk:slim
               gsutil ls gs://${PROJECT}-bucket
             """
           }
