@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: kazre-springboot-app
-        image: nginx:1.14.2
+        image: gcr.io/sandbox-io-289003/kazre-app:master.40
         ports:
         - containerPort: 80
         
