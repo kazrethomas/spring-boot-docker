@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: karrr
+  labels:
+    app: kazre-springboot-app
+data:
+  YOUR_NAME: KAZRE
