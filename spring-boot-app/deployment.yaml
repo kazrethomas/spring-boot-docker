@@ -19,4 +19,10 @@ spec:
         image: gcr.io/sandbox-io-289003/kazre-app:master.40
         ports:
         - containerPort: 8080
+        env:
+        - name: YOUR_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: kazre-config
+              key: YOUR_NAME
         
