@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: kazre-springboot-app
-        image: gcr.io/sandbox-io-289003/kazre-app:master.40
+        image: gcr.io/sandbox-io-289003/kazre-app:master.49
         ports:
         - containerPort: 8080
         env:
