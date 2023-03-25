@@ -23,6 +23,6 @@ spec:
         - name: YOUR_NAME
           valueFrom:
             configMapKeyRef:
-              name: kazre-config
+              name: kazre-springboot-config
               key: YOUR_NAME
         
