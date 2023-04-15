@@ -10,7 +10,6 @@ pipeline {
      REPO = "kazrethomas/spring-boot-docker"
   }
 
-
   agent {
     kubernetes {
       label 'my-agent'
@@ -118,8 +117,9 @@ spec:
                 curl --data "$DATA" "https://api.github.com/repos/$REPO/releases?access_token=$TOKEN"
             fi
             '''
+          }
+        }
       }
     }
   }
-    }
-  }
+}
