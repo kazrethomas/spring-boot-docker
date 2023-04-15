@@ -93,7 +93,7 @@ spec:
     stage('Release') {
       steps {
         container('git') {
-        withCredentials([string(credentialsId: 'github-token ', variable: 'TOKEN')]) {
+        withCredentials([string(credentialsId: 'd71fad77-49ad-4018-adc7-a07f1556153a', variable: 'TOKEN')]) {
           sh '''#!/bin/bash
             LAST_LOG=$(git log --format='%H' --max-count=1 origin/master)
             echo "LAST_LOG:$LAST_LOG"
