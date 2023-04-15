@@ -9,7 +9,7 @@ pipeline {
     JENKINS_CRED = "${PROJECT}"
      REPO = "kazrethomas/spring-boot-docker"
   }
-  }
+
 
   agent {
     kubernetes {
@@ -121,4 +121,5 @@ spec:
       }
     }
   }
+}
 }
