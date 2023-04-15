@@ -90,7 +90,7 @@ spec:
     //      }
     //     }
     //   }
-     }
+     
     stage('Release') {
       steps {
         container('git') {
