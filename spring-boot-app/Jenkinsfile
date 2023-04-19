@@ -80,7 +80,7 @@ spec:
            sh "kubectl apply -f deployment.yaml"
            sh "kubectl apply -f service.yaml"
            sh "kubectl apply -f configmap.yml"
-           sh "helm template  kazre ./kazre-helm/ --set image.tag=${release_version} | kubectl apply -f - "
+           sh "helm template  keyuna ./keyuna-helm/ --set image.tag=${env.BRANCH_NAME}.${env.BUILD_NUMBER} | kubectl apply -f - "
          }
         }
       }
