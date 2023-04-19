@@ -31,7 +31,7 @@ spec:
     - cat
     tty: true
   - name: kubectl
-    image: gcr.io/cloud-builders/kubectl
+    image: dtzar/helm-kubectl:3.11
     imagePullPolicy: IfNotPresent
     command:
     - cat
@@ -80,6 +80,7 @@ spec:
            sh "kubectl apply -f deployment.yaml"
            sh "kubectl apply -f service.yaml"
            sh "kubectl apply -f configmap.yml"
+           sh "helm template  kazre ./kazre-helm/ --set image.tag=${release_version} | kubectl apply -f - "
          }
         }
       }

@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: kazre-springboot-app
+        name: kazre-springboot-app
     spec:
       containers:
       - name: kazre-springboot-app
