@@ -7,7 +7,7 @@ pipeline {
     CLUSTER_ZONE = "us-east1-d"
     IMAGE_TAG = "gcr.io/${PROJECT}/${APP_NAME}:${env.BRANCH_NAME}.${env.BUILD_NUMBER}"
     JENKINS_CRED = "${PROJECT}"
-    
+    REPO = "kazrethomas/spring-boot-docker"
   }
 
   agent {
@@ -32,6 +32,12 @@ spec:
     tty: true
   - name: kubectl
     image: dtzar/helm-kubectl:3.11
+    imagePullPolicy: IfNotPresent
+    command:
+    - cat
+    tty: true
+  - name: git
+    image: bitnami/git:2.40.0
     imagePullPolicy: IfNotPresent
     command:
     - cat
