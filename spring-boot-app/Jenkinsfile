@@ -53,45 +53,45 @@ spec:
 }
   }
 
-  // stages {
-  //   stage('Compilation') {
-  //      steps {
-  //       container('maven') {
-  //        dir("spring-boot-app") {
-  //         sh "mvn clean install -DskipTests"
-  //         }
-  //       }
-  //     }
-  //   }
+  stages {
+    stage('Compilation') {
+       steps {
+        container('maven') {
+         dir("spring-boot-app") {
+          sh "mvn clean install -DskipTests"
+          }
+        }
+      }
+    }
 
-  //   stage('Build and push image with Google Container Registry') {
-  //     steps {
-  //       container('kaniko') {
-  //         dir("spring-boot-app") {
-  //           // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
-  //           // The equivilant to docker build, tag and push
-  //          sh "/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=${IMAGE_TAG}"
-  //        }
-  //       }
-  //     }
-  //   }
+    stage('Build and push image with Google Container Registry') {
+      steps {
+        container('kaniko') {
+          dir("spring-boot-app") {
+            // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
+            // The equivilant to docker build, tag and push
+           sh "/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=${IMAGE_TAG}"
+         }
+        }
+      }
+    }
 
-  //   stage('Deploy to kubernetes') {
-  //     steps {
-  //       container('kubectl') {
-  //         dir("spring-boot-app") {
-  //           // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
-  //           // The equivilant to docker build, tag and push
-  //          sh "ls"
-  //          sh "kubectl apply -f deployment.yaml"
-  //          sh "kubectl apply -f service.yaml"
-  //          sh "kubectl apply -f configmap.yml"
-  //          sh "helm template  kazre ./kazre-helm/ --set image.tag=${env.BRANCH_NAME}.${env.BUILD_NUMBER} | kubectl apply -f - "
-  //        }
-  //       }
-  //     }
-
-   stage('Release') {
+    stage('Deploy to kubernetes') {
+      steps {
+        container('kubectl') {
+          dir("spring-boot-app") {
+            // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
+            // The equivilant to docker build, tag and push
+           sh "ls"
+           sh "kubectl apply -f deployment.yaml"
+           sh "kubectl apply -f service.yaml"
+           sh "kubectl apply -f configmap.yml"
+           sh "helm template  kazre ./kazre-helm/ --set image.tag=${env.BRANCH_NAME}.${env.BUILD_NUMBER} | kubectl apply -f - "
+         }
+        }
+      }
+    }
+    stage('Release') {
       steps {
         container('git') {
         withCredentials([string(credentialsId: '  d71fad77-49ad-4018-adc7-a07f1556153a', variable: 'TOKEN')]) {
@@ -118,7 +118,8 @@ spec:
                 curl --data "$DATA" "https://api.github.com/repos/$REPO/releases?access_token=$TOKEN"
             fi
             '''
+        }
       }
-    }
+    }        
   }
 }
