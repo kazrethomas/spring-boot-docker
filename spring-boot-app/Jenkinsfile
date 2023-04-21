@@ -1,4 +1,4 @@
-pipeline {
+Pipeline {
   environment {
     PROJECT = "sandbox-io-289003"
     APP_NAME = "kazre-app"
