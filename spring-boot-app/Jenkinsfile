@@ -6,9 +6,9 @@ pipeline {
     CLUSTER = "jenkins-cd"
     CLUSTER_ZONE = "us-east1-d"
     IMAGE_TAG = "gcr.io/${PROJECT}/${APP_NAME}:${env.BRANCH_NAME}.${env.BUILD_NUMBER}"
-    JENKINS_CRED = "${PROJECT}"
-    
+    JENKINS_CRED = "${PROJECT}"  
   }
+
   agent {
     kubernetes {
       label 'my-agent'
@@ -50,7 +50,7 @@ spec:
     stage('Release') {
       when {
                 branch 'master'
-
+            }
       steps {
         withCredentials([string(credentialsId: 'kazre-credentials', variable: 'TOKEN')]) {
           sh '''#!/bin/bash
@@ -85,14 +85,12 @@ spec:
     }
   }
 
-
-
     stage('Compilation') {
        steps {
         container('maven') {
          dir("spring-boot-app") {
           sh "mvn clean install -DskipTests"
-         }
+        }
       }
     }
   }
@@ -103,11 +101,10 @@ spec:
             // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
             // The equivilant to docker build, tag and push
            sh "/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=${IMAGE_TAG}"
-         }
+          }
         }
       }
     }
-
     stage('Deploy to kubernetes') {
       steps {
         container('kubectl') {
@@ -123,5 +120,4 @@ spec:
       }
     }
   }
-}
-}
+  }
