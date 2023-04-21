@@ -52,7 +52,7 @@ spec:
       when {
                 branch 'master'
             }
-    stage('Release') {
+            
       steps {
         withCredentials([string(credentialsId: 'kazre-credentials', variable: 'TOKEN')]) {
           sh '''#!/bin/bash
