@@ -47,8 +47,8 @@ spec:
 }
   }
 
-stages {
-        stage('Release') {
+  stages {
+    stage('Release') {
       when {
                 branch 'master'
             }
