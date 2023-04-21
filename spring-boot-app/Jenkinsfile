@@ -57,7 +57,7 @@ spec:
         }
       }
     }
-
+  }
     stage('Build and push image with Google Container Registry') {
       steps {
         container('kaniko') {
@@ -117,4 +117,5 @@ spec:
             '''
     }
   }
+}
 }
