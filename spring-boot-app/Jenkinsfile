@@ -52,7 +52,7 @@ spec:
       when {
                 branch 'master'
             }
-            
+
       steps {
         withCredentials([string(credentialsId: 'kazre-credentials', variable: 'TOKEN')]) {
           sh '''#!/bin/bash
@@ -140,5 +140,4 @@ spec:
       }
     }
   }
-}
 }
