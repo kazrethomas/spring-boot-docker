@@ -7,7 +7,7 @@ pipeline {
     CLUSTER_ZONE = "us-east1-d"
     IMAGE_TAG = "gcr.io/${PROJECT}/${APP_NAME}:${env.BRANCH_NAME}.${env.BUILD_NUMBER}"
     JENKINS_CRED = "${PROJECT}"
-    REPO = "kazrethomas/spring-boot-docker"
+    
   }
 
   agent {
@@ -32,12 +32,6 @@ spec:
     tty: true
   - name: kubectl
     image: dtzar/helm-kubectl:3.11
-    imagePullPolicy: IfNotPresent
-    command:
-    - cat
-    tty: true
-  - name: git
-    image: bitnami/git:2.40.0
     imagePullPolicy: IfNotPresent
     command:
     - cat
@@ -86,40 +80,10 @@ spec:
            sh "kubectl apply -f deployment.yaml"
            sh "kubectl apply -f service.yaml"
            sh "kubectl apply -f configmap.yml"
-           sh "helm template  kazre ./kazre-helm/ --set image.tag=${env.BRANCH_NAME}.${env.BUILD_NUMBER} | kubectl apply -f - "
+           sh "helm template  kazre ./kazre-helm/ --set image.tag=${release_version} | kubectl apply -f - "
          }
         }
       }
     }
-    stage('Release') {
-      steps {
-        container('git') {
-        withCredentials([string(credentialsId: '  d71fad77-49ad-4018-adc7-a07f1556153a', variable: 'TOKEN')]) {
-          sh '''#!/bin/bash
-            LAST_LOG=$(git log --format='%H' --max-count=1 origin/master)
-            echo "LAST_LOG:$LAST_LOG"
-            LAST_MERGE=$(git log --format='%H' --merges --max-count=1 origin/master)
-            echo "LAST_MERGE:$LAST_MERGE"
-            LAST_MSG=$(git log --format='%s' --max-count=1 origin/master)
-            echo "LAST_MSG:$LAST_MSG"
-            VERSION=$(echo $LAST_MSG | grep --only-matching 'v\\?[0-9]\\+\\.[0-9]\\+\\(\\.[0-9]\\+\\)\\?')
-            echo "VERSION:$VERSION"
-            
-            if [[ $LAST_LOG == $LAST_MERGE && -n $VERSION ]]
-            then
-                DATA='{
-                    "tag_name": "'$VERSION'",
-                    "target_commitish": "master",
-                    "name": "'$VERSION'",
-                    "body": "'$LAST_MSG'",
-                    "draft": false,
-                    "prerelease": false
-                }'
-                curl --data "$DATA" "https://api.github.com/repos/$REPO/releases?access_token=$TOKEN"
-            fi
-            '''
-        }
-      }
-    }        
   }
 }
