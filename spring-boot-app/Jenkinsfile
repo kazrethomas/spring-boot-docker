@@ -53,8 +53,7 @@ spec:
         container('maven') {
          dir("spring-boot-app") {
           sh "mvn clean install -DskipTests"
-          }
-        }
+         }
       }
     }
   }
@@ -115,7 +114,7 @@ spec:
                 curl --header "Accept: application/vnd.github+json" --header "Authorization: Bearer $TOKEN" --data "$DATA" "https://api.github.com/repos/$REPO/releases"
             fi
             '''
+      }
     }
   }
-}
 }
