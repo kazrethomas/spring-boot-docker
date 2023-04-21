@@ -9,7 +9,6 @@ pipeline {
     JENKINS_CRED = "${PROJECT}"
     
   }
-}
   agent {
     kubernetes {
       label 'my-agent'
@@ -124,4 +123,5 @@ spec:
       }
     }
   }
+}
 }
