@@ -45,7 +45,6 @@ spec:
 """
 }
   }
-
   stages {
     stage('Release') {
       when {
@@ -80,20 +79,19 @@ spec:
                 curl --header "Accept: application/vnd.github+json" --header "Authorization: Bearer $TOKEN" --data "$DATA" "https://api.github.com/repos/$REPO/releases"
             fi
             '''
+          }
         }
       }
-    }
-  }
-
+    
     stage('Compilation') {
        steps {
         container('maven') {
          dir("spring-boot-app") {
           sh "mvn clean install -DskipTests"
+          }
         }
       }
     }
-  }
     stage('Build and push image with Google Container Registry') {
       steps {
         container('kaniko') {
@@ -116,8 +114,9 @@ spec:
            sh "kubectl apply -f service.yaml"
            sh "kubectl apply -f configmap.yml"
            sh "helm template  kazre ./kazre-helm/ --set image.tag=${env.BRANCH_NAME}.${env.BUILD_NUMBER} | kubectl apply -f - "
-         }
+        }
       }
     }
   }
   }
+}
