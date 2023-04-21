@@ -9,7 +9,7 @@ pipeline {
     JENKINS_CRED = "${PROJECT}"
     
   }
-
+}
   agent {
     kubernetes {
       label 'my-agent'
@@ -51,7 +51,7 @@ spec:
     stage('Release') {
       when {
                 branch 'master'
-            }
+
       steps {
         withCredentials([string(credentialsId: 'kazre-credentials', variable: 'TOKEN')]) {
           sh '''#!/bin/bash
