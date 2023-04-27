@@ -60,6 +60,7 @@ spec:
                 branch 'master'
             }
       steps {
+        container('git') {
         withCredentials([string(credentialsId: 'kazre-credentials', variable: 'TOKEN')]) {
           script {
           // LAST_MSG  = sh (
@@ -68,7 +69,8 @@ spec:
         release_version = sh (
                 script: "git log --format='%s' --max-count=1 origin/master | grep --only-matching 'v\\?[0-9]\\+\\.[0-9]\\+\\(\\.[0-9]\\+\\)\\?'",
                  returnStdout: true
-                   ).trim()          
+                   ).trim()
+          }          
           sh '''#!/bin/bash
             git config --global user.name "kazrethomas"
             git config --global user.email "kazre.thomas@cod-it.tech"
