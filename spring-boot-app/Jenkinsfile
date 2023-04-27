@@ -61,13 +61,14 @@ spec:
             }
       steps {
         withCredentials([string(credentialsId: 'kazre-credentials', variable: 'TOKEN')]) {
-          LAST_MSG  = sh (
-                script: "git log --format='%s' --max-count=1 origin/master",
-                 returnStdout: true).trim()
-          release_version = sh (
-                script: "echo ${LAST_MSG} | grep --only-matching 'v\\?[0-9]\\+\\.[0-9]\\+\\(\\.[0-9]\\+\\)\\?'",
+          script {
+          // LAST_MSG  = sh (
+          //       script: "git log --format='%s' --max-count=1 origin/master",
+          //        returnStdout: true).trim()
+        release_version = sh (
+                script: "git log --format='%s' --max-count=1 origin/master | grep --only-matching 'v\\?[0-9]\\+\\.[0-9]\\+\\(\\.[0-9]\\+\\)\\?'",
                  returnStdout: true
-                   ).trim()            
+                   ).trim()          
           sh '''#!/bin/bash
             git config --global user.name "kazrethomas"
             git config --global user.email "kazre.thomas@cod-it.tech"
