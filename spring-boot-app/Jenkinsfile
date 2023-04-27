@@ -1,3 +1,5 @@
+
+def release_version
 pipeline {
   environment {
     PROJECT = "sandbox-io-289003"
@@ -35,6 +37,12 @@ spec:
     command:
     - cat
     tty: true
+  - name: git
+    image: jlrigau/maven-git
+    imagePullPolicy: IfNotPresent
+    command:
+    - cat
+    tty: true
   - name: kaniko
     image: gcr.io/kaniko-project/executor:v1.6.0-debug
     imagePullPolicy: Always
@@ -52,6 +60,14 @@ spec:
             }
       steps {
         withCredentials([string(credentialsId: 'kazre-credentials', variable: 'TOKEN')]) {
+          LAST_MSG  = sh (
+                script: 'git log --format='%s' --max-count=1 origin/master',
+                 returnStdout: true
+                   ).trim()
+          release_version = sh (
+                script: "echo ${LAST_MSG} | grep --only-matching 'v\\?[0-9]\\+\\.[0-9]\\+\\(\\.[0-9]\\+\\)\\?'",
+                 returnStdout: true
+                   ).trim()            
           sh '''#!/bin/bash
             git config --global user.name "kazrethomas"
             git config --global user.email "kazre.thomas@cod-it.tech"
@@ -65,6 +81,7 @@ spec:
             echo "LAST_MSG:$LAST_MSG"
             VERSION=$(echo $LAST_MSG | grep --only-matching 'v\\?[0-9]\\+\\.[0-9]\\+\\(\\.[0-9]\\+\\)\\?')
             echo "VERSION:$VERSION"
+            "${my_var}=version
             
             if [[ $LAST_LOG == $LAST_MERGE && -n $VERSION ]]
             then
@@ -78,6 +95,9 @@ spec:
                 }'
                 curl --header "Accept: application/vnd.github+json" --header "Authorization: Bearer $TOKEN" --data "$DATA" "https://api.github.com/repos/$REPO/releases"
             fi
+
+            mvn versions:set -DnewVersion=1.0=$VERSION
+            mvn install -DskipTests
             '''
           }
         }
@@ -98,7 +118,7 @@ spec:
           dir("spring-boot-app") {
             // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
             // The equivilant to docker build, tag and push
-           sh "/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=${IMAGE_TAG}"
+           sh "/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=${release_version}"
           }
         }
       }
@@ -109,11 +129,11 @@ spec:
           dir("spring-boot-app") {
             // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
             // The equivilant to docker build, tag and push
-           sh "ls"
-           sh "kubectl apply -f deployment.yaml"
-           sh "kubectl apply -f service.yaml"
-           sh "kubectl apply -f configmap.yml"
-           sh "helm template  kazre ./kazre-helm/ --set image.tag=${env.BRANCH_NAME}.${env.BUILD_NUMBER} | kubectl apply -f - "
+          //  sh "ls"
+          //  sh "kubectl apply -f deployment.yaml"
+          //  sh "kubectl apply -f service.yaml"
+          //  sh "kubectl apply -f configmap.yml"
+           sh "helm template  kazre ./kazre-helm/ --set image.tag=${release_version}.${env.BUILD_NUMBER} | kubectl apply -f - "
         }
       }
     }

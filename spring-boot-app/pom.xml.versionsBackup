@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.example.dockerize</groupId>
 	<artifactId>spring-boot-app</artifactId>
-	<version>1.0</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<name>spring-boot-app</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
