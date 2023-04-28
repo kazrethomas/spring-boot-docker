@@ -1,19 +1,20 @@
-pipeline {
 
+def release_version
+pipeline {
   environment {
     PROJECT = "sandbox-io-289003"
-    APP_NAME = "gceme"
+    APP_NAME = "kazre-app"
     FE_SVC_NAME = "${APP_NAME}-frontend"
     CLUSTER = "jenkins-cd"
     CLUSTER_ZONE = "us-east1-d"
     IMAGE_TAG = "gcr.io/${PROJECT}/${APP_NAME}:${env.BRANCH_NAME}.${env.BUILD_NUMBER}"
-    JENKINS_CRED = "${PROJECT}"
+    JENKINS_CRED = "${PROJECT}"  
     REPO = "kazrethomas/spring-boot-docker"
   }
 
   agent {
     kubernetes {
-      label 'sample-app'
+      label 'my-agent'
       defaultContainer 'jnlp'
       yaml """
 apiVersion: v1
@@ -25,94 +26,120 @@ spec:
   # Use service account that can deploy to all namespaces
   serviceAccountName: cd-jenkins
   containers:
-  - name: golang
-    image: golang:1.10
-    command:
-    - cat
-    tty: true
-  - name: gcloud
-    image: gcr.io/cloud-builders/gcloud
+  - name:  maven
+    image:  maven
+    imagePullPolicy: IfNotPresent
     command:
     - cat
     tty: true
   - name: kubectl
-    image: gcr.io/cloud-builders/kubectl
+    image: dtzar/helm-kubectl:3.11
+    imagePullPolicy: IfNotPresent
     command:
     - cat
     tty: true
+  - name: git
+    image: jlrigau/maven-git
+    imagePullPolicy: IfNotPresent
+    command:
+    - cat
+    tty: true
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:v1.6.0-debug
+    imagePullPolicy: Always
+    command:
+    - sleep
+    args:
+    - 99d
 """
 }
   }
   stages {
-    stage('Test') {
-      steps {
-        container('golang') {
-          sh """
-            ln -s `pwd` /go/src/sample-app
-            cd /go/src/sample-app
-            go test
-          """
-        }
-      }
-    }
-    stage('Build and push image with Container Builder') {
-      steps {
-        container('gcloud') {
-          sh "PYTHONUNBUFFERED=1 gcloud builds submit -t ${IMAGE_TAG} ."
-        }
-      }
-    }
-    stage('Deploy Canary') {
-      // Canary branch
-      when { branch 'canary' }
-      steps {
-        container('kubectl') {
-          // Change deployed image in canary to the one we just built
-          sh("sed -i.bak 's#gcr.io/sandbox-io-289003/gceme:1.0.0#${IMAGE_TAG}#' ./k8s/canary/*.yaml")
-          step([$class: 'KubernetesEngineBuilder', namespace:'production', projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'k8s/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
-          step([$class: 'KubernetesEngineBuilder', namespace:'production', projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'k8s/canary', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
-          sh("echo http://`kubectl --namespace=production get service/${FE_SVC_NAME} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` > ${FE_SVC_NAME}")
-        }
-      }
-    }
-    stage('Deploy Production') {
-      // Production branch
-      when { 
-        anyOf { 
-          branch 'main' 
-          branch 'master' 
-        }
-      }
-      steps{
-        container('kubectl') {
-        // Change deployed image in canary to the one we just built
-          sh("sed -i.bak 's#gcr.io/sandbox-io-289003/gceme:1.0.0#${IMAGE_TAG}#' ./k8s/production/*.yaml")
-          step([$class: 'KubernetesEngineBuilder', namespace:'production', projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'k8s/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
-          step([$class: 'KubernetesEngineBuilder', namespace:'production', projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'k8s/production', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
-          sh("echo http://`kubectl --namespace=production get service/${FE_SVC_NAME} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` > ${FE_SVC_NAME}")
-        }
-      }
-    }
-    stage('Deploy Dev') {
-      // Developer Branches
+    stage('Release') {
       when {
-        not { branch 'main' }
-        not { branch 'master' }
-        not { branch 'canary' }
-      }
+                branch 'master'
+            }
       steps {
-        container('kubectl') {
-          // Create namespace if it doesn't exist
-          sh("kubectl get ns ${env.BRANCH_NAME} || kubectl create ns ${env.BRANCH_NAME}")
-          // Don't use public load balancing for development branches
-          sh("sed -i.bak 's#LoadBalancer#ClusterIP#' ./k8s/services/frontend.yaml")
-          sh("sed -i.bak 's#gcr.io/sandbox-io-289003/gceme:1.0.0#${IMAGE_TAG}#' ./k8s/dev/*.yaml")
-          step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'k8s/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
-          step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'k8s/dev', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
-          echo 'To access your environment run `kubectl proxy`'
-          echo "Then access your service via http://localhost:8001/api/v1/proxy/namespaces/${env.BRANCH_NAME}/services/${FE_SVC_NAME}:80/"
+        container('git') {
+        withCredentials([string(credentialsId: 'kazre-credentials', variable: 'TOKEN')]) {
+          script {
+          // LAST_MSG  = sh (
+          //       script: "git log --format='%s' --max-count=1 origin/master",
+          //        returnStdout: true).trim()
+        release_version = sh (
+                script: "git log --format='%s' --max-count=1 origin/master | grep --only-matching 'v\\?[0-9]\\+\\.[0-9]\\+\\(\\.[0-9]\\+\\)\\?'",
+                 returnStdout: true
+                   ).trim()
+          }          
+          sh '''#!/bin/bash
+            git config --global user.name "kazrethomas"
+            git config --global user.email "kazre.thomas@cod-it.tech"
+            git config --global user.password "$TOKEN"
+            git config --global --add safe.directory '*'
+            LAST_LOG=$(git log --format='%H' --max-count=1 origin/master)
+            echo "LAST_LOG:$LAST_LOG"
+            LAST_MERGE=$(git log --format='%H' --merges --max-count=1 origin/master)
+            echo "LAST_MERGE:$LAST_MERGE"
+            LAST_MSG=$(git log --format='%s' --max-count=1 origin/master)
+            echo "LAST_MSG:$LAST_MSG"
+            VERSION=$(echo $LAST_MSG | grep --only-matching 'v\\?[0-9]\\+\\.[0-9]\\+\\(\\.[0-9]\\+\\)\\?')
+            echo "VERSION:$VERSION"
+            "${my_var}=version
+            
+            if [[ $LAST_LOG == $LAST_MERGE && -n $VERSION ]]
+            then
+                DATA='{
+                    "tag_name": "'$VERSION'",
+                    "target_commitish": "master",
+                    "name": "'$VERSION'",
+                    "body": "'$LAST_MSG'",
+                    "draft": false,
+                    "prerelease": false
+                }'
+                curl --header "Accept: application/vnd.github+json" --header "Authorization: Bearer $TOKEN" --data "$DATA" "https://api.github.com/repos/$REPO/releases"
+            fi
+
+            mvn versions:set -DnewVersion=1.0=$VERSION
+            mvn install -DskipTests
+            '''
+          }
         }
       }
     }
+    stage('Compilation') {
+       steps {
+        container('maven') {
+         dir("spring-boot-app") {
+          sh "mvn clean install -DskipTests"
+          }
+        }
+      }
+    }
+    stage('Build and push image with Google Container Registry') {
+      steps {
+        container('kaniko') {
+          dir("spring-boot-app") {
+            // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
+            // The equivilant to docker build, tag and push
+           sh "/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=${release_version}"
+          }
+        }
+      }
+    }
+    stage('Deploy to kubernetes') {
+      steps {
+        container('kubectl') {
+          dir("spring-boot-app") {
+            // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
+            // The equivilant to docker build, tag and push
+          //  sh "ls"
+          //  sh "kubectl apply -f deployment.yaml"
+          //  sh "kubectl apply -f service.yaml"
+          //  sh "kubectl apply -f configmap.yml"
+           sh "helm template  kazre ./kazre-helm/ --set image.tag=${release_version}.${env.BUILD_NUMBER} | kubectl apply -f - "
+        }
+      }
+    }
+  }
   }
 }
