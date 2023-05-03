@@ -96,8 +96,6 @@ spec:
                 curl --header "Accept: application/vnd.github+json" --header "Authorization: Bearer $TOKEN" --data "$DATA" "https://api.github.com/repos/$REPO/releases"
             fi
 
-            mvn versions:set -DnewVersion=1.0=$VERSION
-            mvn install -DskipTests
             '''
           }
         }
