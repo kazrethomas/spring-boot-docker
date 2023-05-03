@@ -63,9 +63,7 @@ spec:
         container('git') {
         withCredentials([string(credentialsId: 'kazre-credentials', variable: 'TOKEN')]) {
           script {
-          // LAST_MSG  = sh (
-          //       script: "git log --format='%s' --max-count=1 origin/master",
-          //        returnStdout: true).trim()
+
         release_version = sh (
                 script: "git log --format='%s' --max-count=1 origin/master | grep --only-matching 'v\\?[0-9]\\+\\.[0-9]\\+\\(\\.[0-9]\\+\\)\\?'",
                  returnStdout: true
@@ -84,7 +82,6 @@ spec:
             echo "LAST_MSG:$LAST_MSG"
             VERSION=$(echo $LAST_MSG | grep --only-matching 'v\\?[0-9]\\+\\.[0-9]\\+\\(\\.[0-9]\\+\\)\\?')
             echo "VERSION:$VERSION"
-            "${my_var}=version
             
             if [[ $LAST_LOG == $LAST_MERGE && -n $VERSION ]]
             then
