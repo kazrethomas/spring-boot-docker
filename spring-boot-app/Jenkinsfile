@@ -96,6 +96,8 @@ spec:
                 curl --header "Accept: application/vnd.github+json" --header "Authorization: Bearer $TOKEN" --data "$DATA" "https://api.github.com/repos/$REPO/releases"
             fi
 
+            mvn versions:set -DnewVersion=1.0=$VERSION
+            mvn install -DskipTests
             '''
           }
         }
@@ -105,6 +107,7 @@ spec:
        steps {
         container('maven') {
          dir("spring-boot-app") {
+          sh "mvn  versions:set -DnewVersion=${release_version}"
           sh "mvn clean install -DskipTests"
           }
         }
@@ -116,7 +119,7 @@ spec:
           dir("spring-boot-app") {
             // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
             // The equivilant to docker build, tag and push
-           sh "/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=${release_version}"
+           sh "/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=gcr.io/${PROJECT}/${APP_NAME}:${release_version}"
           }
         }
       }
@@ -127,11 +130,7 @@ spec:
           dir("spring-boot-app") {
             // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
             // The equivilant to docker build, tag and push
-          //  sh "ls"
-          //  sh "kubectl apply -f deployment.yaml"
-          //  sh "kubectl apply -f service.yaml"
-          //  sh "kubectl apply -f configmap.yml"
-           sh "helm template  kazre ./kazre-helm/ --set image.tag=${release_version}.${env.BUILD_NUMBER} | kubectl apply -f - "
+             sh "helm template  kazre ./kazre-helm/ --set image.tag=${release_version}.${env.BUILD_NUMBER} | kubectl apply -f - "
         }
       }
     }
