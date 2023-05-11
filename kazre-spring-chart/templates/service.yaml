@@ -1,15 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "kazre-helm.fullname" . }}
+  annotations:
+      cloud.google.com/backend-config: '{"default": "kazre-hc-config"}'
+  name: {{ .Values.app.labels }}
   labels:
-    {{- include "kazre-helm.labels" . | nindent 4 }}
+    app: {{ .Values.app.labels }}
 spec:
   type: {{ .Values.service.type }}
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
   selector:
-    {{- include "kazre-helm.selectorLabels" . | nindent 4 }}
+    app: {{ .Values.app.labels }}
+  ports:
+  - protocol: TCP
+    port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.port }}

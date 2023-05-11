@@ -1,0 +1,13 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: keyuna-hc-config
+spec:
+  logging:
+    enable: true
+    sampleRate: 0.5
+  healthCheck:
+    checkIntervalSec: 15
+    port: 8080
+    type: HTTP
+    requestPath: /kazre/api/hello
