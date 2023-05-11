@@ -8,11 +8,15 @@ image:
   repository: gcr.io/sandbox-io-289003/kazre-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "master.49"
+  tag: "master.103"
+
+app:
+  labels: "kazre-springboot-app"
+  name: "kazre-helm-map"
 
 imagePullSecrets: []
-nameOverride: "kazre-helm"
-fullnameOverride: "kazre-helm-map"
+nameOverride: ""
+fullnameOverride: ""
 
 serviceAccount:
   # Specifies whether a service account should be created
